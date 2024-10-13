@@ -1,4 +1,4 @@
-package com.example.diceroller.navigation
+package com.example.diceroller.navigation.dice_results
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -18,11 +18,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.diceroller.R
+import com.example.diceroller.navigation.utils.BackButton
 
 @Composable
-fun DiceResult(
-    navController: NavController, resultShow: Int = 1 ,
-    modifier: Modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)
+fun DiceResult3(
+    navController: NavController,
+    modifier: Modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
+    resultShow: Int = 1
 ) {
     var result by remember { mutableStateOf(resultShow) }
     val imageResource = when(result) {
@@ -41,10 +43,13 @@ fun DiceResult(
             painter = painterResource(imageResource),
             contentDescription = result.toString()
         )
+        BackButton(navController, result)
         Button(
-            onClick = { navController.navigate(Screens.Roll.route)},
+            onClick = {
+                result += 1
+            },
         ) {
-            Text(text = (stringResource(R.string.back)), fontSize = 24.sp)
+            Text(text = (stringResource(R.string.increment)), fontSize = 24.sp)
         }
     }
 }
