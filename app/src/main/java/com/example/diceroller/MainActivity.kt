@@ -25,30 +25,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.diceroller.ui.theme.DiceRollerTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.diceroller.navigation.NavGraph
+import com.example.diceroller.navigation.Screens
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             DiceRollerTheme {
-                DiceRollerApp()
+                val navController = rememberNavController()
+                NavGraph(navController = navController)
             }
         }
     }
 }
 
-@Preview
-@Composable
-fun DiceRollerApp() {
-    DiceWithButtonAndImage(modifier = Modifier
-        .fillMaxSize()
-        .wrapContentSize(Alignment.Center)
-    )
-
-}
 
 @Composable
-fun DiceWithButtonAndImage(modifier: Modifier = Modifier) {
+fun DiceWithButtonAndImage(
+    navController: NavController,
+    modifier: Modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)
+) {
     var result by remember { mutableStateOf(1) }
     val imageResource = when(result) {
         1 -> R.drawable.dice_1
@@ -71,6 +71,20 @@ fun DiceWithButtonAndImage(modifier: Modifier = Modifier) {
             result = (1..6).random()
         }) {
             Text(stringResource(R.string.roll))
+        }
+        Button(
+            onClick = {
+                navController.navigate(
+                    Screens.DiceResult.route
+                        .replace(
+                            oldValue = "{result}",
+                            newValue = result.toString()
+                        )
+                )
+
+            },
+        ) {
+            Text(text = stringResource(R.string.result_screen), fontSize = 24.sp)
         }
     }
 }
