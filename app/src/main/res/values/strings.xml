@@ -3,4 +3,6 @@
     <string name="roll">Roll</string>
     <string name="result_screen">Result Screen</string>
     <string name="back">Back</string>
+    <string name="increment">Increment</string>
+    <string name="scree_dice">Screen %1$d</string>
 </resources>
