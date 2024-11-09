@@ -11,9 +11,10 @@ import com.example.diceroller.navigation.dice_results.DiceResult3
 import com.example.diceroller.navigation.dice_results.DiceResult4
 import com.example.diceroller.navigation.dice_results.DiceResult5
 import com.example.diceroller.navigation.dice_results.DiceResult6
+import com.example.diceroller.sensors.SensorActivity
 
 @Composable
-fun NavGraph (navController: NavHostController){
+fun NavGraph (navController: NavHostController, sensorActivity: SensorActivity){
     NavHost(
         navController = navController,
         startDestination = Screens.Roll.route)
@@ -22,7 +23,7 @@ fun NavGraph (navController: NavHostController){
             navBackStack -> //extracting the argument
                 var resultShow: Int = navBackStack.arguments?.getString("result")?.toIntOrNull()?:1
 
-            DiceWithButtonAndImage(navController = navController, resultShow = resultShow)
+            DiceWithButtonAndImage(navController = navController, resultShow = resultShow, sensorActivity = sensorActivity)
         }
         composable(route = Screens.DiceResult.route+ "?result={result}&prev_result={prev_result}"){
             navBackStack -> //extracting the argument
