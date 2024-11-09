@@ -47,10 +47,6 @@ class SensorActivity(context: Context) : Activity(), SensorEventListener {
             val y = event.values[1]
             val z = event.values[2]
 
-            // Log the accelerometer values
-            Log.d(TAG, "Accelerometer values: x=$x, y=$y, z=$z")
-
-            // Call the lambda function with updated sensor values
             onSensorDataChanged?.invoke(x, y, z)
         }
     }

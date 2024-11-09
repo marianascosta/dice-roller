@@ -103,20 +103,13 @@ fun DiceWithButtonAndImage(
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
 
-    // Floor height to stop the dice from falling beyond (in pixels)
-    val floorHeightPx = 100f
-//    LaunchedEffect(sensorActivity) {
-//        sensorActivity.onSensorDataChanged = { x, y, _ ->
-//            offsetX += x * 5  // 5 is a scaling factor
-//            offsetY += y * 5
-//
-//            // Stop the dice from falling beyond the floor height
-//            if (offsetY > floorHeightPx) {
-//                offsetY = floorHeightPx
-//            }
-//
-//        }
-//    }
+    LaunchedEffect(sensorActivity) {
+        sensorActivity.onSensorDataChanged = { x, y, _ ->
+            offsetX += x * 5
+            offsetY += y * 5
+
+        }
+    }
 
     Column(
         modifier = modifier,
@@ -127,42 +120,29 @@ fun DiceWithButtonAndImage(
             painter = painterResource(imageResource),
             contentDescription = result.toString(),
             modifier = Modifier
-                .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
-                .wrapContentSize(Alignment.Center)
+                .offset {
+                    val (newOffsetX, newOffsetY) = getOffsets(screenWidth.toPx(), screenHeight.toPx(), offsetX, offsetY)
+                    IntOffset(newOffsetX.roundToInt(), newOffsetY.roundToInt())
+                }
                 .pointerInput(Unit) {
                     detectDragGestures { _, dragAmount ->
-                        // Update offset values based on drag amount
                         offsetX += dragAmount.x
                         offsetY += dragAmount.y
 
-                        val image = 200f
-
-                        // Convert screen size to pixels for boundary checks
                         val screenWidthPx = screenWidth.toPx()
                         val screenHeightPx = screenHeight.toPx()
 
-                        if (offsetY < - screenHeightPx / 2 + image * 2) {
-                            offsetY = - screenHeightPx / 2 + image * 2
-                        }
-                        // Stop the dice from falling beyond the floor height
-                        if (offsetY > floorHeightPx) {
-                            offsetY = floorHeightPx
-                        }
+                        val (newOffsetX, newOffsetY) = getOffsets(screenWidthPx, screenHeightPx, offsetX, offsetY)
+                        offsetX = newOffsetX
+                        offsetY = newOffsetY
 
-                        if (offsetX < - screenWidthPx / 2 + image) {
-                            offsetX = - screenWidthPx / 2 + image
-                        }
-
-                        if (offsetX > screenWidthPx / 2 - image) {
-                            offsetX = screenWidthPx / 2 - image
-                        }
                     }
                 }
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             previousResult = result
-            result = (1..6).random()
+            result = rollDice()
         }) {
             Text(stringResource(R.string.roll))
         }
@@ -209,4 +189,33 @@ fun SensorDataDisplay(sensorActivity: SensorActivity) {
         Text(text = "Y: $y", fontSize = 20.sp)
         Text(text = "Z: $z", fontSize = 20.sp)
     }
+}
+
+fun getOffsets(screenWidthPx: Float, screenHeightPx: Float, offsetX: Float, offsetY: Float): Pair<Float, Float> {
+    var newOffsetX = offsetX
+    var newOffsetY = offsetY
+
+    val image = 200f
+    val floorHeightPx = 100f
+
+    if (newOffsetY < - screenHeightPx / 2 + image * 2) {
+        newOffsetY = - screenHeightPx / 2 + image * 2
+    }
+    // Stop the dice from falling beyond the floor height
+    if (newOffsetY > floorHeightPx) {
+        newOffsetY = floorHeightPx
+    }
+
+    if (newOffsetX < - screenWidthPx / 2 + image) {
+        newOffsetX = - screenWidthPx / 2 + image
+    }
+
+    if (newOffsetX > screenWidthPx / 2 - image) {
+        newOffsetX = screenWidthPx / 2 - image
+    }
+    return Pair(newOffsetX, newOffsetY)
+}
+
+fun rollDice(): Int {
+    return (1..6).random()
 }
