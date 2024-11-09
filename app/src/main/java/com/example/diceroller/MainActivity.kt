@@ -1,25 +1,16 @@
 package com.example.diceroller
 
 
-import android.content.Context
-import android.content.pm.ActivityInfo
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -35,59 +26,48 @@ import com.example.diceroller.ui.theme.DiceRollerTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.diceroller.navigation.NavGraph
 import com.example.diceroller.navigation.Screens
-import com.example.diceroller.sensors.SensorActivity
-import kotlin.math.roundToInt
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
+import com.example.diceroller.sensors.ShakeDetector
 
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var sensorActivity: SensorActivity
+    private lateinit var shakeDetector: ShakeDetector
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Initialize SensorActivity
-        sensorActivity = SensorActivity(this)
+        shakeDetector = ShakeDetector(this)
         setContent {
             DiceRollerTheme {
-                SensorDataDisplay(sensorActivity)
                 val navController = rememberNavController()
-                DiceWithButtonAndImage(navController = navController, sensorActivity = sensorActivity)
+                NavGraph(navController = navController, shakeDetector = shakeDetector)
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        sensorActivity.registerListener()
     }
 
     override fun onPause() {
         super.onPause()
-        sensorActivity.unregisterListener()
+        shakeDetector.unregister()
     }
 }
 
 
 @Composable
-fun DiceWithButtonAndImage(
+fun HomeScreen(
     navController: NavController,
-    sensorActivity: SensorActivity,
+    shakeDetector: ShakeDetector,
     modifier: Modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
     resultShow: Int = 1
 ) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-
     var result by remember { mutableStateOf(resultShow) }
     var previousResult by remember { mutableStateOf(resultShow) }
     val imageResource = when(result) {
@@ -99,33 +79,40 @@ fun DiceWithButtonAndImage(
         else -> R.drawable.dice_6
     }
 
-    // State variables to adjust offset based on accelerometer
+    var showToast by remember { mutableStateOf(false) }
+    // Shake event handling
+    LaunchedEffect(shakeDetector) {
+        shakeDetector.onShakeDetected = {
+            previousResult = result
+            result = rollDice()
+            showToast = true
+        }
+    }
+
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
 
-    LaunchedEffect(sensorActivity) {
-        sensorActivity.onSensorDataChanged = { x, y, _ ->
-            offsetX += x * 5
-            offsetY += y * 5
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-        }
-    }
 
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Dice image with offset based on sensor data
+        if (showToast)
+            Toast.makeText(
+                LocalContext.current,
+                "Shake detected!",
+                Toast.LENGTH_SHORT
+            ).show()
         Image(
             painter = painterResource(imageResource),
             contentDescription = result.toString(),
             modifier = Modifier
-                .offset {
-                    val (newOffsetX, newOffsetY) = getOffsets(screenWidth.toPx(), screenHeight.toPx(), offsetX, offsetY)
-                    IntOffset(newOffsetX.roundToInt(), newOffsetY.roundToInt())
-                }
                 .pointerInput(Unit) {
                     detectDragGestures { _, dragAmount ->
+
                         offsetX += dragAmount.x
                         offsetY += dragAmount.y
 
@@ -157,37 +144,6 @@ fun DiceWithButtonAndImage(
         ) {
             Text(text = stringResource(R.string.result_screen), fontSize = 24.sp)
         }
-    }
-}
-
-@Composable
-fun SensorDataDisplay(sensorActivity: SensorActivity) {
-    // State variables to hold accelerometer data
-    var x by remember { mutableStateOf(0f) }
-    var y by remember { mutableStateOf(0f) }
-    var z by remember { mutableStateOf(0f) }
-
-    // Register callback to update state whenever sensor data changes
-    LaunchedEffect(sensorActivity) {
-        sensorActivity.onSensorDataChanged = { xData, yData, zData ->
-            x = xData
-            y = yData
-            z = zData
-        }
-    }
-
-    // Display accelerometer data in the UI
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Accelerometer Data", fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "X: $x", fontSize = 20.sp)
-        Text(text = "Y: $y", fontSize = 20.sp)
-        Text(text = "Z: $z", fontSize = 20.sp)
     }
 }
 

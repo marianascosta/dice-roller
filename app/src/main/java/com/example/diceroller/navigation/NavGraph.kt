@@ -4,17 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.diceroller.DiceWithButtonAndImage
+import com.example.diceroller.HomeScreen
 import com.example.diceroller.navigation.dice_results.DiceResult1
 import com.example.diceroller.navigation.dice_results.DiceResult2
 import com.example.diceroller.navigation.dice_results.DiceResult3
 import com.example.diceroller.navigation.dice_results.DiceResult4
 import com.example.diceroller.navigation.dice_results.DiceResult5
 import com.example.diceroller.navigation.dice_results.DiceResult6
-import com.example.diceroller.sensors.SensorActivity
+import com.example.diceroller.sensors.ShakeDetector
 
 @Composable
-fun NavGraph (navController: NavHostController, sensorActivity: SensorActivity){
+fun NavGraph (navController: NavHostController, shakeDetector: ShakeDetector){
     NavHost(
         navController = navController,
         startDestination = Screens.Roll.route)
@@ -23,7 +23,8 @@ fun NavGraph (navController: NavHostController, sensorActivity: SensorActivity){
             navBackStack -> //extracting the argument
                 var resultShow: Int = navBackStack.arguments?.getString("result")?.toIntOrNull()?:1
 
-            DiceWithButtonAndImage(navController = navController, resultShow = resultShow, sensorActivity = sensorActivity)
+            HomeScreen(navController = navController, resultShow = resultShow,
+                shakeDetector = shakeDetector)
         }
         composable(route = Screens.DiceResult.route+ "?result={result}&prev_result={prev_result}"){
             navBackStack -> //extracting the argument
