@@ -1,6 +1,7 @@
 package com.example.diceroller
 
 
+import android.R.attr.onClick
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -27,12 +29,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.diceroller.navigation.NavGraph
 import com.example.diceroller.navigation.Screens
 import com.example.diceroller.sensors.ShakeDetector
+import kotlin.math.roundToInt
 
 
 class MainActivity : ComponentActivity() {
@@ -110,6 +114,7 @@ fun HomeScreen(
             painter = painterResource(imageResource),
             contentDescription = result.toString(),
             modifier = Modifier
+                .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
                 .pointerInput(Unit) {
                     detectDragGestures { _, dragAmount ->
 
